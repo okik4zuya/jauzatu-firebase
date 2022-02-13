@@ -10,6 +10,8 @@ import {
   where,
   updateDoc,
   doc,
+  onSnapshot,
+  setDoc
 } from "firebase/firestore";
 import { db } from "../firebase-config";
 import EditTema from "../components/edit/EditTema";
@@ -28,11 +30,12 @@ function Edit() {
     const q = new URLSearchParams(window.location.search);
     setSlugQuery(q.get("slug"));
   }, [slugQuery]);
-  console.log(slugQuery);
+  
 
   const invitationsCollectionRef = collection(db, "invitations");
   const q = query(invitationsCollectionRef, where("slug", "==", slugQuery));
   const [value, setValue] = useState({ loading: true });
+  const [curretData, setCurrentData] = useState([])
 
   // Assign retrieved data to 'value' state
   useEffect(() => {
@@ -42,25 +45,35 @@ function Edit() {
         ...data.docs.map((doc) => doc.data())[0],
         id: data.docs.map((doc) => doc.id)[0],
       });
+      onSnapshot(collection(db, 'invitations'), snap => {
+        console.log(`Query data`)
+        console.log(snap.docs.map(doc => ({...doc.data(), id: doc.id})))
+        setCurrentData((snap.docs.map(doc => ({...doc.data(), id: doc.id}))).filter(el => el.slug === slugQuery))
+      })
     };
     getPosts();
   }, [slugQuery]);
 
   // Update Handler
-  const updateHandler = async () => {
-    const invitationDocs = doc(db, "invitations", "GtnhzBwAyOXuQVQnwKHT");
+  const updateHandler = async e => {
+    e.preventDefault()
+    const invitationDocs = doc(db, "invitations", curretData[0].id); // "GtnhzBwAyOXuQVQnwKHT"
+    try {
+      
+      await setDoc(invitationDocs, { tema: value.tema })
 
-    await updateDoc(invitationDocs, {
-      tema: value.tema,
-    });
+      // const data = await updateDoc(invitationDocs, {
+      //   tema: value.tema
+      // });
+      // console.log(`Edited data...`)
+      // console.log(data)
+      // return data
+
+    } catch (error) {
+      console.log(`${error}`)
+    }
   };
 
-  console.log(value.tema);
-  console.log(value.namaLengkapPria);
-  console.log(value.namaPria);
-  console.log(value.namaLengkapWanita);
-  console.log(value.namaWanita);
-  console.log(value.id);
   return (
     <div>
       <div className='relative min-h-screen w-full lg:w-[1024px]  mx-auto'>

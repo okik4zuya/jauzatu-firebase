@@ -62,7 +62,7 @@ function EditTema({ value, setValue, showModal, setShowModal, updateHandler }) {
                 className='bg-gold text-white'
                 variant='primary'
                 type='submit'
-                onClick={() => updateHandler()}
+                onClick={e => updateHandler(e)}
               >
                 Update
               </Button>
